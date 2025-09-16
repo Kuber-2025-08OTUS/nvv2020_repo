@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: homework-pod
+  namespace: homework
+  labels:
+    app: homework-pod
+spec:
+
+  containers:
+  - name: web-server
+    image: python:3.9-slim
+    command: ['sh', '-c', 'python -m http.server 8000 --directory /homework']
+    ports:
+    - containerPort: 8000
+    volumeMounts:
+    - name: workdir
+      mountPath: /homework
+    lifecycle:
+      preStop:
+        exec:
+          command: ['rm', '-rf', '/homework/index.html']
+
+  initContainers:
+  - name: init
+    image: busybox:1.28
+    command: ['sh', '-c', 'echo "Hello from init container." > /init/index.html']
+    volumeMounts:
+    - name: workdir
+      mountPath: "/init"
+
+  volumes:
+  - name: workdir
+    emptyDir: {}
+
