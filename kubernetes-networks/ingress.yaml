@@ -1,35 +1,40 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: homework-ingress
-  namespace: homework
+  name: homework-ingress-homepage
   annotations:
-    # nginx.ingress.kubernetes.io/rewrite-target: /index.html
-    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /index.html
+spec:
+  # без этого тега ругается W0929 10:17:01.392094       7 controller.go:349] ignoring ingress homework-ingress in homework based on annotation : ingress does not contain a valid IngressClass
+  ingressClassName: "nginx"
+  rules:
+  - host: homework.otus
+    http:
+      paths:
+      - path: /homepage
+        pathType: Prefix
+        backend:
+          service:
+            name: homework-service
+            port:
+              number: 8000
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homework-ingress-homepage
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /index.html
 spec:
   ingressClassName: "nginx"
   rules:
-    - host: homework.otus
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: homework-service
-                port:
-                  number: 8000
-          # - path: /homepage(/|$)(.*)
-          #   pathType: ImplementationSpecific
-          #   backend:
-          #     service:
-          #       name: homework-service
-          #       port:
-          #         number: 8000
-          # - path: /homepage
-          #   pathType: Prefix
-          #   backend:
-          #     service:
-          #       name: homework-service
-          #       port:
-          #         number: 8000
+  - host: homework.otus
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: homework-service
+            port:
+              number: 8000
