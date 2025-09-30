@@ -1,11 +1,19 @@
 name: "Pull Request Labeler"
-
-on: pull_request_target
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   triage:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
-    - uses: actions/labeler@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Run Labeler
+      uses: actions/labeler@v4
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"

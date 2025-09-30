@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homework-deployment
+  namespace: homework
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: homework-pod
+  template:
+    metadata:
+      labels:
+        app: homework-pod
+    spec:
+      nodeSelector:
+         homework: "true"
+      initContainers:
+        - name: init
+          image: busybox:1.37
+          command: ['sh', '-c', 'echo "Hello from init container." > /init/index.html']
+          volumeMounts:
+            - name: workdir
+              mountPath: /init
+      containers:
+        - name: web-server
+          image: python:3.9-slim
+          ports:
+            - containerPort: 8000
+          command: ['sh', '-c', 'python -m http.server 8000 --directory /homework']
+          volumeMounts:
+            - name: workdir
+              mountPath: /homework
+          lifecycle:
+            preStop:
+              exec:
+                command: ['rm', '-rf', '/homework/index.html']
+          readinessProbe:
+            httpGet:
+              path: /index.html
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 10
+      volumes:
+        - name: workdir
+          emptyDir: {}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
