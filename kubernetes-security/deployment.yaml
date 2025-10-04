@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homework-deployment
+  namespace: homework
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: homework-pod
+  template:
+    metadata:
+      labels:
+        app: homework-pod
+    spec:
+      nodeSelector:
+         homework: "true"
+      serviceAccountName: monitoring
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - homework-pod
+              topologyKey: kubernetes.io/hostname
+      initContainers:
+        - name: init
+          image: curlimages/curl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              cat > /homework/index.html << 'EOF'
+              Hello from init container!
+              EOF
+              curl --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+              -H "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+              "https://kubernetes.default.svc/metrics" > /homework/metrics.html
+          volumeMounts:
+            - name: workdir
+              mountPath: /homework
+      containers:
+        - name: web-server
+          image: python:3.9-slim
+          ports:
+            - containerPort: 8000
+          command:
+            - /bin/sh
+            - -c
+            - |
+              cp /init/index.html /homework/
+              cp /init/metrics.html /homework/
+              python -m http.server 8000 --directory /homework
+          volumeMounts:
+            - name: workdir
+              mountPath: /homework
+            - name: config
+              mountPath: /homework/conf
+          lifecycle:
+            preStop:
+              exec:
+                command: ['sh', '-c', 'rm -f /homework/index.html /homework/metrics.html']
+          readinessProbe:
+            httpGet:
+              path: /index.html
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 10
+      volumes:
+        - name: workdir
+          persistentVolumeClaim:
+            claimName: local-pvc
+        - name: config
+          configMap:
+            name: app-config
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
