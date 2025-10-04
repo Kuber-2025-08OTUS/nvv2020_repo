@@ -40,10 +40,7 @@ spec:
               EOF
               curl --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
               -H "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
-              "https://${API_SERVER}:6443/metrics" > /homework/metrics.html
-          env:
-            - name: API_SERVER
-              value: 192.168.1.206
+              "https://kubernetes.default.svc/metrics" > /homework/metrics.html
           volumeMounts:
             - name: workdir
               mountPath: /homework
