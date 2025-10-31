@@ -1,0 +1,70 @@
+global:
+  security:
+    allowInsecureImages: true
+
+securityContext:
+  enabled: true
+  fsGroup: 1001
+  runAsUser: 1001
+
+podSecurityContext:
+  enabled: true
+  fsGroup: 1001
+  runAsUser: 1001
+  runAsNonRoot: true
+
+containerSecurityContext:
+  enabled: true
+  runAsUser: 1001
+  runAsNonRoot: true
+
+image:
+  registry: public.ecr.aws
+  repository: bitnami/kafka
+  pullPolicy: IfNotPresent
+
+kraft:
+  enabled: true
+
+controller:
+  replicaCount: 1
+  nodeId: "{brokerId}"
+  kraft:
+    enabled: true
+    processRoles: "broker,controller"
+    controllerQuorumVoters: "0@kafka-0.kafka-headless.prod.svc.cluster.local:9093,1@kafka-1.kafka-headless.prod.svc.cluster.local:9093"
+
+listeners:
+  client:
+    name: CLIENT
+    containerPort: 9092
+    protocol: PLAINTEXT
+    sslClientAuth: ""
+  controller:
+    name: CONTROLLER
+    containerPort: 9093
+    protocol: PLAINTEXT
+    sslClientAuth: ""
+  interbroker:
+    containerPort: 9095
+    protocol: PLAINTEXT
+    name: EXTERNAL
+    sslClientAuth: ""
+
+tls:
+  enabled: false
+
+zookeeper:
+  enabled: false
+
+persistence:
+  enabled: true
+  existingClaim: "data-kafka-dev-controller-{brokerId}"
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "500m"

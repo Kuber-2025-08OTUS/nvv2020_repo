@@ -1,0 +1,21 @@
+repositories:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+
+releases:
+  - name: kafka-prod
+    namespace: prod
+    chart: bitnami/kafka
+    version: 25.3.5
+    values:
+      - kafka-prod-values.yaml
+    wait: true
+    timeout: 1200
+
+  - name: kafka-dev
+    namespace: dev
+    chart: bitnami/kafka
+    values:
+      - kafka-dev-values.yaml
+    wait: true
+    timeout: 600
