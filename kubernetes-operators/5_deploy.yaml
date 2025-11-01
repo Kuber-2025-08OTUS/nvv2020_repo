@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-operator
+  namespace: operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-operator
+  template:
+    metadata:
+      labels:
+        app: mysql-operator
+    spec:
+      serviceAccountName: mysql-operator
+      containers:
+      - name: mysql-operator
+        image: anastasiya742/mysql-operator:0.8
+        imagePullPolicy: Always
+        env:
+        - name: NFS_SERVER
+          value: "192.168.1.59"
+        - name: NFS_BASE_PATH
+          value: "/data/mysql"
+        - name: STORAGE_CLASS_NAME
+          value: "nfs-storage"
+        - name: KOPF_NAMESPACES
+          value: "*"
+        - name: KOPF_VERBOSE
+          value: "true"
+        - name: PYTHONUNBUFFERED
+          value: "1"

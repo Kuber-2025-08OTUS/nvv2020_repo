@@ -1,0 +1,3 @@
+kopf>=1.38
+kubernetes>=28.0
+pyyaml>=6.0
