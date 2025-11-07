@@ -1,0 +1,73 @@
+image:
+  registry: public.ecr.aws
+  repository: bitnami/kafka
+  tag: "3.5.2"
+  pullPolicy: IfNotPresent
+
+kraft:
+  enabled: true
+
+controller:
+  replicaCount: 5
+  nodeId: "{brokerId}"
+  kraft:
+    enabled: true
+    processRoles: "broker,controller"
+    controllerQuorumVoters: "0@kafka-0.kafka-headless.prod.svc.cluster.local:9093,1@kafka-1.kafka-headless.prod.svc.cluster.local:9093,2@kafka-2.kafka-headless.prod.svc.cluster.local:9093,3@kafka-3.kafka-headless.prod.svc.cluster.local:9093,4@kafka-4.kafka-headless.prod.svc.cluster.local:9093"
+
+auth:
+  clientProtocol: sasl
+  interBrokerProtocol: sasl
+  saslMechanisms: "plain"
+  saslAllowedMechanisms: "plain"
+  saslUsers:
+    - "admin=adminpassword"
+    - "client=clientpassword"
+  saslInterBrokerUser: "admin"
+  saslInterBrokerPassword: "adminpassword"
+
+  users:
+    - name: admin
+      password: "admin-secret-password"
+      type: management
+    - name: client
+      password: "client-secret-password"
+      type: client
+    - name: interbroker
+      password: "interbroker-secret-password"
+      type: interbroker
+
+listeners:
+  client:
+    name: CLIENT
+    containerPort: 9092
+    protocol: SASL_PLAINTEXT
+    sslClientAuth: ""
+  controller:
+    name: CONTROLLER
+    containerPort: 9093
+    protocol: PLAINTEXT
+    sslClientAuth: ""
+  interbroker:
+    containerPort: 9095
+    protocol: SASL_PLAINTEXT
+    name: EXTERNAL
+    sslClientAuth: ""
+
+tls:
+  enabled: false
+
+zookeeper:
+  enabled: false
+
+persistence:
+  enabled: true
+  existingClaim: "data-kafka-prod-controller-{brokerId}"
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "500m"
