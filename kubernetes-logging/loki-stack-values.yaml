@@ -1,0 +1,12 @@
+loki:
+  enabled: true
+  isDefault: true
+
+promtail:
+  enabled: true
+
+grafana:
+  enabled: true
+  adminPassword: "admin123"
+  service:
+    type: LoadBalancer
